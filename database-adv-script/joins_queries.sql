@@ -28,6 +28,7 @@ FROM
 LEFT JOIN 
     Review ON Property.property_id = Review.property_id;
 
+
 -- FULL OUTER JOIN – All users and all bookings, even if not linked
 SELECT 
     User.user_id,

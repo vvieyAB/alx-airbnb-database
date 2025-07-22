@@ -1,33 +1,17 @@
 USE airbnb_clone;
 
-INSERT INTO User (
+
+INSERT INTO Review(
+    review_id,
+    property_id,
     user_id,
-    first_name,
-    last_name,
-    email,
-    password_hash,
-    phone_number,
-    role
-) VALUES (
-    '2', 
-    'mine', 
-    'Ndicu', 
-    'munun@gmail.com', 
-    '789973/3391--', 
-    '09876544', 
-    'guest'
+    rating,
+    comment    
+)VALUES(
+    '3',
+    '2',
+    '2',
+    '3',
+    'terrible'
 );
 
-INSERT INTO Property(
-    property_id,
-    name,
-    description,
-    location,
-    pricernight
-)VALUES(
-    '1',
-    'Donas',
-    'A two bedroom apartment',
-    'Diani',
-    '2000.00'
-);
