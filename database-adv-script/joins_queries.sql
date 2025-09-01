@@ -20,14 +20,15 @@ SELECT
     Property.property_id,
     Property.name,
     Property.location,
-    COUNT(Review.review_id) as review_count,
-    AVG(Review.rating) as average_rating
+    Review.review_id,
+    Review.rating,
+    Review.comment
 FROM 
     Property
 LEFT JOIN 
     Review ON Property.property_id = Review.property_id
-GROUP BY 
-    Property.property_id, Property.name, Property.location;
+ORDER BY 
+    Property.property_id, Review.review_id;
 
 
 -- FULL OUTER JOIN – All users and all bookings, even if not linked
