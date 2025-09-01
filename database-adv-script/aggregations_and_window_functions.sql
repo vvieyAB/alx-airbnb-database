@@ -1,94 +1,97 @@
 USE airbnb_clone;
 
--- 1. INNER JOIN – All bookings with their respective users:
+-- 1. INNER JOIN to retrieve all bookings and respective users
 SELECT 
-    Booking.booking_id,
-    Booking.property_id,
-    Booking.start_date,
-    Booking.end_date,
-    User.user_id,
-    User.first_name,
-    User.last_name,
-    User.email
+    b.booking_id,
+    b.property_id,
+    b.start_date,
+    b.end_date,
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.email
 FROM 
-    Booking
+    Booking b
 INNER JOIN 
-    User ON Booking.user_id = User.user_id;
-
--- 2. LEFT JOIN – All properties and their reviews, including those without reviews:
-SELECT 
-    Property.property_id,
-    Property.name,
-    Property.location,
-    Review.review_id,
-    Review.rating,
-    Review.comment
-FROM 
-    Property
-LEFT JOIN 
-    Review ON Property.property_id = Review.property_id
+    User u ON b.user_id = u.user_id
 ORDER BY 
-    Property.property_id, Review.review_id;
+    b.booking_id;
 
--- 3. FULL OUTER JOIN – All users and all bookings, even if not linked
--- Note: For MySQL versions that don't support FULL OUTER JOIN, use UNION of LEFT and RIGHT joins
+-- 2. LEFT JOIN to retrieve all properties and their reviews (including properties with no reviews)
 SELECT 
-    User.user_id,
-    User.first_name,
-    User.last_name,
-    Booking.booking_id,
-    Booking.property_id,
-    Booking.start_date,
-    Booking.end_date
+    p.property_id,
+    p.name AS property_name,
+    p.location,
+    r.review_id,
+    r.rating,
+    r.comment,
+    r.created_at
 FROM 
-    User
+    Property p
 LEFT JOIN 
-    Booking ON User.user_id = Booking.user_id
+    Review r ON p.property_id = r.property_id
+ORDER BY 
+    p.property_id, r.review_id;
 
-UNION
+-- 3. FULL OUTER JOIN for all users and all bookings (MySQL compatible version)
+SELECT 
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    b.booking_id,
+    b.property_id,
+    b.start_date,
+    b.end_date
+FROM 
+    User u
+LEFT JOIN 
+    Booking b ON u.user_id = b.user_id
+
+UNION ALL
 
 SELECT 
-    User.user_id,
-    User.first_name,
-    User.last_name,
-    Booking.booking_id,
-    Booking.property_id,
-    Booking.start_date,
-    Booking.end_date
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    b.booking_id,
+    b.property_id,
+    b.start_date,
+    b.end_date
 FROM 
-    User
+    User u
 RIGHT JOIN 
-    Booking ON User.user_id = Booking.user_id
+    Booking b ON u.user_id = b.user_id
 WHERE 
-    User.user_id IS NULL;
+    u.user_id IS NULL
+ORDER BY 
+    user_id, booking_id;
 
--- 4. Aggregate Bookings by User (COUNT + GROUP BY)
+-- 4. Total number of bookings made by each user (COUNT + GROUP BY)
 SELECT 
-    User.user_id,
-    User.first_name,
-    User.last_name,
-    COUNT(Booking.booking_id) AS total_bookings
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    COUNT(b.booking_id) AS total_bookings
 FROM 
-    User
+    User u
 LEFT JOIN 
-    Booking ON User.user_id = Booking.user_id
+    Booking b ON u.user_id = b.user_id
 GROUP BY 
-    User.user_id, User.first_name, User.last_name
+    u.user_id, u.first_name, u.last_name
 ORDER BY 
     total_bookings DESC;
 
--- 5. Rank Properties by Total Bookings (Using RANK window function)
+-- 5. Rank properties based on total number of bookings (Window function RANK)
 SELECT 
-    Property.property_id,
-    Property.name AS property_name,
-    Property.location,
-    COALESCE(COUNT(Booking.booking_id), 0) AS total_bookings,
-    RANK() OVER (ORDER BY COUNT(Booking.booking_id) DESC) AS property_rank
+    p.property_id,
+    p.name AS property_name,
+    COUNT(b.booking_id) AS total_bookings,
+    RANK() OVER (ORDER BY COUNT(b.booking_id) DESC) AS booking_rank
 FROM 
-    Property
+    Property p
 LEFT JOIN 
-    Booking ON Property.property_id = Booking.property_id
+    Booking b ON p.property_id = b.property_id
 GROUP BY 
-    Property.property_id, Property.name, Property.location
+    p.property_id, p.name
 ORDER BY 
-    total_bookings DESC;
+    booking_rank;
